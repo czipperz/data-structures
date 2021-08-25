@@ -43,4 +43,4 @@ struct Tree {
 }
 }
 
-#include "splay_tree.cpp"
+#include "splay_tree.tpp"

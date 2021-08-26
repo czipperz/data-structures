@@ -18,10 +18,13 @@ TEST_CASE("Splay_Tree insertion") {
     CZ_DEFER(tree.drop(cz::heap_allocator()));
     tree.insert(cz::heap_allocator(), 1);
     val_tree(tree);
+    CHECK(tree.root->element == 1);
     tree.insert(cz::heap_allocator(), 2);
     val_tree(tree);
+    CHECK(tree.root->element == 2);
     tree.insert(cz::heap_allocator(), 3);
     val_tree(tree);
+    CHECK(tree.root->element == 3);
 
     Iterator<int> it = tree.start();
     REQUIRE(it != tree.end());
@@ -63,10 +66,12 @@ TEST_CASE("Splay_Tree find") {
     Iterator<int> it;
     it = tree.find(0);
     val_tree(tree);
+    CHECK(tree.root->element == 1);
     CHECK(it == tree.end());
     it = tree.find(1);
     REQUIRE(it != tree.end());
     CHECK(*it == 1);
+    CHECK(it.node == tree.root);
     it = tree.find(2);
     REQUIRE(it != tree.end());
     CHECK(*it == 2);
@@ -93,6 +98,7 @@ TEST_CASE("Splay_Tree find_less") {
     it = tree.find_less(2);
     REQUIRE(it != tree.end());
     CHECK(*it == 1);
+    CHECK(tree.root->element == 2);
     it = tree.find_less(3);
     REQUIRE(it != tree.end());
     CHECK(*it == 2);
@@ -119,6 +125,7 @@ TEST_CASE("Splay_Tree find_greater") {
     it = tree.find_greater(2);
     REQUIRE(it != tree.end());
     CHECK(*it == 3);
+    CHECK(tree.root->element == 2);
     it = tree.find_greater(3);
     CHECK(it == tree.end());
     it = tree.find_greater(4);
@@ -142,6 +149,7 @@ TEST_CASE("Splay_Tree find_less_equal") {
     it = tree.find_less_equal(2);
     REQUIRE(it != tree.end());
     CHECK(*it == 2);
+    CHECK(it.node == tree.root);
     it = tree.find_less_equal(3);
     REQUIRE(it != tree.end());
     CHECK(*it == 3);
@@ -168,6 +176,7 @@ TEST_CASE("Splay_Tree find_greater_equal") {
     it = tree.find_greater_equal(2);
     REQUIRE(it != tree.end());
     CHECK(*it == 2);
+    CHECK(it.node == tree.root);
     it = tree.find_greater_equal(3);
     REQUIRE(it != tree.end());
     CHECK(*it == 3);

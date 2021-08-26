@@ -148,13 +148,11 @@ void Tree<T>::remove(cz::Allocator allocator, Iterator<const T> iterator) {
     if (iterator == end())
         return;
 
-    Node<T>* parent = (Node<T>*)iterator.node->parent;
-
-    gen::remove(iterator.node);
+    Node<T>* new_node = (Node<T>*)gen::remove(iterator.node);
     allocator.dealloc(iterator.node);
 
-    splay(parent);
-    root = parent;
+    splay(new_node);
+    root = new_node;
 }
 
 template <class T>

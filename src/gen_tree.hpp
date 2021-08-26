@@ -28,11 +28,12 @@ Node_Base* rightmost(Node_Base* root);
 Node_Base* node_after(Node_Base*);
 Node_Base* node_before(Node_Base*);
 
-/// Requires non-null input and non-null `right->parent`.
-void swap_positions(Node_Base* left, Node_Base* right);
-
 /// Requires non-null input.
-void remove(Node_Base*);
+Node_Base* remove(Node_Base*);
+void remove_leaf(Node_Base*);
+
+/// Allow null inputs.
+size_t count(Node_Base*);
 
 template <class T>
 void recursive_dealloc(cz::Allocator allocator, Node<T>* node) {

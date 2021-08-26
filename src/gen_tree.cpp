@@ -124,58 +124,62 @@ Node_Base* node_before(Node_Base* node) {
     return nullptr;
 }
 
-void swap_positions(Node_Base* left, Node_Base* right) {
-    CZ_DEBUG_ASSERT(left);
-    CZ_DEBUG_ASSERT(right);
-    CZ_DEBUG_ASSERT(right->parent);
-
-    // Swap their fields.
-    cz::swap(left->parent, right->parent);
-    cz::swap(left->left, right->left);
-    cz::swap(left->right, right->right);
-
-    // Swap parents' children.
-    if (left->parent) {
-        if (left->parent->left == right)
-            left->parent->left = left;
-        else
-            left->parent->right = left;
-    }
-    if (right->parent->right == right)
-        right->parent->right = right;
-    else
-        right->parent->left = right;
-
-    // Swap childrens' parents.
-    if (left->left)
-        left->left->parent = left;
-    if (left->right)
-        left->right->parent = left;
-    if (right->left)
-        right->left->parent = right;
-    if (right->right)
-        right->right->parent = right;
-}
-
-void remove(Node_Base* node) {
+void remove_leaf(Node_Base* node) {
     CZ_DEBUG_ASSERT(node);
 
-    // Find a leaf node to swap positions with.
-    Node_Base* swapper = leftmost(node->right);
-    if (!swapper) {
-        swapper = rightmost(node->left);
+    if (node->parent) {
+        if (node->parent->left == node)
+            node->parent->left = nullptr;
+        else
+            node->parent->right = nullptr;
     }
-    if (swapper) {
-        swap_positions(node, swapper);
+}
+
+Node_Base* remove(Node_Base* node) {
+    CZ_DEBUG_ASSERT(node);
+
+    // Find a child element to replace this node.
+    Node_Base* replacement = rightmost(node->left);
+    if (!replacement) {
+        replacement = leftmost(node->right);
     }
 
+    // No children so just unhook this element.
+    if (!replacement) {
+        remove_leaf(node);
+        return replacement;
+    }
+
+    remove_leaf(replacement);
+
+    replacement->parent = node->parent;
     if (node->parent) {
         if (node->parent->left == node) {
-            node->parent->left = nullptr;
+            node->parent->left = replacement;
         } else {
-            node->parent->right = nullptr;
+            node->parent->right = replacement;
         }
     }
+
+    replacement->left = node->left;
+    if (replacement->left)
+        replacement->left->parent = replacement;
+
+    replacement->right = node->right;
+    if (replacement->right)
+        replacement->right->parent = replacement;
+
+    return replacement;
+}
+
+size_t count(Node_Base* node) {
+    size_t total = 0;
+    while (node) {
+        total += 1;
+        total += count(node->left);
+        node = node->right;
+    }
+    return total;
 }
 
 }

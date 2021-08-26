@@ -194,15 +194,21 @@ TEST_CASE("Splay_Tree removal") {
     tree.insert(cz::heap_allocator(), 3);
     val_tree(tree);
 
-    Iterator<int> it = tree.start();
-    REQUIRE(it != tree.end());
-    CHECK(*it == 1);
-    ++it;
-    REQUIRE(it != tree.end());
-    CHECK(*it == 2);
-    ++it;
-    REQUIRE(it != tree.end());
-    CHECK(*it == 3);
-    ++it;
-    CHECK(it == tree.end());
+    REQUIRE(tree.contains(1));
+    REQUIRE(tree.contains(2));
+    REQUIRE(tree.contains(3));
+
+    tree.remove(cz::heap_allocator(), tree.find(2));
+    val_tree(tree);
+    CHECK(tree.count() == 2);
+    CHECK(tree.contains(1));
+    CHECK_FALSE(tree.contains(2));
+    CHECK(tree.contains(3));
+
+    tree.remove(cz::heap_allocator(), tree.find(4));
+    val_tree(tree);
+    CHECK(tree.count() == 2);
+    CHECK(tree.contains(1));
+    CHECK_FALSE(tree.contains(2));
+    CHECK(tree.contains(3));
 }

@@ -6,8 +6,8 @@
 namespace ds {
 namespace splay {
 
-using gen::Node;
 using gen::Iterator;
+using gen::Node;
 
 template <class T>
 struct Tree {
@@ -36,6 +36,10 @@ struct Tree {
     Iterator<T> find_greater(const T& element);
     Iterator<T> find_less_equal(const T& element);
     Iterator<T> find_greater_equal(const T& element);
+
+    bool contains(const T& element) { return find(element) != end(); }
+
+    size_t count() const { return gen::count(root); }
 
     Node<T>* root;
 };

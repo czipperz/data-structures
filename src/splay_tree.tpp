@@ -85,7 +85,7 @@ static Iterator<T> find_gen(Tree<T>* tree, const T& element, int64_t* last_compa
         if (comparison < 0) {
             new_node = node->left;
         } else if (comparison > 0) {
-            new_node = node->left;
+            new_node = node->right;
         } else {
             new_node = nullptr;
         }
@@ -97,6 +97,7 @@ static Iterator<T> find_gen(Tree<T>* tree, const T& element, int64_t* last_compa
     *last_comparison = comparison;
 
     splay(parent);
+    tree->root = parent;
 
     return Iterator<T>{parent};
 }
@@ -140,7 +141,8 @@ bool Tree<T>::insert(cz::Allocator allocator, const T& element) {
             parent->parent->right = parent;
         }
     } else {
-        root = parent;
+        // Done below.
+        // root = parent;
     }
 
     // Child's side depends on its relationship to element.
@@ -156,6 +158,8 @@ bool Tree<T>::insert(cz::Allocator allocator, const T& element) {
     it.node->parent = parent;
 
     splay(parent);
+    root = parent;
+
     return true;
 }
 
@@ -165,12 +169,13 @@ void Tree<T>::remove(cz::Allocator allocator, Iterator<const T> iterator) {
     if (iterator == end())
         return;
 
-    Base_Node* parent = iterator.node->parent;
+    Node<T>* parent = (Node<T>*)iterator.node->parent;
 
     gen::remove(iterator.node);
     allocator.dealloc(iterator.node);
 
-    splay((Node<T>*)parent);
+    splay(parent);
+    root = parent;
 }
 
 template <class T>
@@ -205,13 +210,13 @@ template <class T>
 Iterator<T> Tree<T>::find_less(const T& element) {
     int64_t last_comparison;
     Iterator<T> iterator = find_gen(this, element, &last_comparison);
-    if (last_comparison < 0) {
+    if (last_comparison > 0) {
         return iterator;
     } else if (iterator == start()) {
         return end();
     } else {
-        iterator.retreat();
-        CZ_DEBUG_ASSERT(*iterator < element);
+        --iterator;
+        CZ_DEBUG_ASSERT(iterator == end() || *iterator < element);
         return iterator;
     }
 }
@@ -219,13 +224,13 @@ template <class T>
 Iterator<T> Tree<T>::find_greater(const T& element) {
     int64_t last_comparison;
     Iterator<T> iterator = find_gen(this, element, &last_comparison);
-    if (last_comparison > 0) {
+    if (last_comparison < 0) {
         return iterator;
     } else if (iterator == end()) {
         return end();
     } else {
-        iterator.advance();
-        CZ_DEBUG_ASSERT(*iterator > element);
+        ++iterator;
+        CZ_DEBUG_ASSERT(iterator == end() || *iterator > element);
         return iterator;
     }
 }
@@ -233,13 +238,13 @@ template <class T>
 Iterator<T> Tree<T>::find_less_equal(const T& element) {
     int64_t last_comparison;
     Iterator<T> iterator = find_gen(this, element, &last_comparison);
-    if (last_comparison <= 0) {
+    if (last_comparison >= 0) {
         return iterator;
     } else if (iterator == start()) {
         return end();
     } else {
-        iterator.retreat();
-        CZ_DEBUG_ASSERT(*iterator < element);
+        --iterator;
+        CZ_DEBUG_ASSERT(iterator == end() || *iterator < element);
         return iterator;
     }
 }
@@ -247,13 +252,13 @@ template <class T>
 Iterator<T> Tree<T>::find_greater_equal(const T& element) {
     int64_t last_comparison;
     Iterator<T> iterator = find_gen(this, element, &last_comparison);
-    if (last_comparison >= 0) {
+    if (last_comparison <= 0) {
         return iterator;
     } else if (iterator == end()) {
         return end();
     } else {
-        iterator.advance();
-        CZ_DEBUG_ASSERT(*iterator > element);
+        ++iterator;
+        CZ_DEBUG_ASSERT(iterator == end() || *iterator > element);
         return iterator;
     }
 }

@@ -26,4 +26,10 @@ TEST_CASE("Splay_Map insertion") {
     CHECK(it != map.end());
     CHECK(it->key == 1);
     CHECK(cz::Str(it->value) == "hello");
+    it = map.find(2);
+    CHECK(it != map.end());
+    CHECK(it->key == 2);
+    CHECK(cz::Str(it->value) == "world");
+    it = map.find(3);
+    CHECK(it == map.end());
 }

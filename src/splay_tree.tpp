@@ -71,30 +71,7 @@ static void splay(gen::Node<T>* elem) {
 
 template <class T>
 static Iterator<T> find_gen(Tree<T>* tree, const T& element, int64_t* last_comparison) {
-    ZoneScoped;
-    if (!tree->root)
-        return tree->end();
-
-    Node<T>* parent = nullptr;
-    Node<T>* node = tree->root;
-    int64_t comparison = 0;
-    while (node) {
-        gen::Node_Base* new_node = nullptr;
-
-        comparison = cz::compare(element, node->element);
-        if (comparison < 0) {
-            new_node = node->left;
-        } else if (comparison > 0) {
-            new_node = node->right;
-        } else {
-            new_node = nullptr;
-        }
-
-        parent = node;
-        node = (Node<T>*)new_node;
-    }
-
-    *last_comparison = comparison;
+    Node<T>* parent = gen::find(tree->root, element, last_comparison);
 
     splay(parent);
     tree->root = parent;

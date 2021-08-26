@@ -81,7 +81,7 @@ struct Iterator {
 };
 
 template <class T>
-static void val_node(Node<T>* node, Node<T>* parent) {
+void val_node(Node<T>* node, Node<T>* parent) {
     if (!node)
         return;
 
@@ -96,6 +96,31 @@ static void val_node(Node<T>* node, Node<T>* parent) {
     if (node->right) {
         CZ_ASSERT(((Node<T>*)node->right)->element > node->element);
     }
+}
+
+template <class T>
+Node<T>* find(Node<T>* root, const T& element, int64_t* last_comparison) {
+    Node<T>* parent = nullptr;
+    Node<T>* node = root;
+    int64_t comparison = 0;
+    while (node) {
+        gen::Node_Base* new_node = nullptr;
+
+        comparison = cz::compare(element, node->element);
+        if (comparison < 0) {
+            new_node = node->left;
+        } else if (comparison > 0) {
+            new_node = node->right;
+        } else {
+            new_node = nullptr;
+        }
+
+        parent = node;
+        node = (Node<T>*)new_node;
+    }
+
+    *last_comparison = comparison;
+    return parent;
 }
 
 }

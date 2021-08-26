@@ -2,6 +2,7 @@
 
 #include <cz/defer.hpp>
 #include <cz/heap.hpp>
+#include <random>
 #include "splay_tree.hpp"
 
 using namespace cz;
@@ -211,4 +212,61 @@ TEST_CASE("Splay_Tree removal") {
     CHECK(tree.contains(1));
     CHECK_FALSE(tree.contains(2));
     CHECK(tree.contains(3));
+}
+
+TEST_CASE("Splay_Tree linear insertion") {
+    Tree<int> tree = {};
+    CZ_DEFER(tree.drop(cz::heap_allocator()));
+
+    for (int i = 0; i < 4096; ++i) {
+        tree.insert(cz::heap_allocator(), i);
+    }
+
+    Iterator<int> iter = tree.start();
+    for (int i = 0; i < 4096; ++i) {
+        REQUIRE(iter != tree.end());
+        CHECK(*iter == i);
+        ++iter;
+    }
+
+    for (int i = 0; i < 4096; ++i) {
+        tree.remove(cz::heap_allocator(), tree.start());
+    }
+
+    CHECK(tree.start() == tree.end());
+}
+
+TEST_CASE("Splay_Tree random insertion") {
+    Tree<int> tree = {};
+    CZ_DEFER(tree.drop(cz::heap_allocator()));
+
+    {
+        cz::Vector<int> nums = {};
+        CZ_DEFER(nums.drop(cz::heap_allocator()));
+        nums.reserve_exact(cz::heap_allocator(), 4096);
+
+        while (nums.len < nums.cap) {
+            nums.push(nums.len);
+        }
+
+        std::mt19937 g{std::random_device{}()};
+        std::shuffle(nums.begin(), nums.end(), g);
+
+        for (size_t i = 0; i < 4096; ++i) {
+            tree.insert(cz::heap_allocator(), nums[i]);
+        }
+    }
+
+    Iterator<int> iter = tree.start();
+    for (int i = 0; i < 4096; ++i) {
+        REQUIRE(iter != tree.end());
+        CHECK(*iter == i);
+        ++iter;
+    }
+
+    for (int i = 0; i < 4096; ++i) {
+        tree.remove(cz::heap_allocator(), tree.start());
+    }
+
+    CHECK(tree.start() == tree.end());
 }

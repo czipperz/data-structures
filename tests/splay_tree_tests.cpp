@@ -292,3 +292,34 @@ TEST_CASE("Splay_Tree random insertion") {
 
     CHECK(tree.start() == tree.end());
 }
+
+TEST_CASE("Splay_Tree slice iteration") {
+    Tree<int> tree = {};
+    CZ_DEFER(tree.drop(cz::heap_allocator()));
+
+    SECTION("odds") {
+        for (int i = 0; i < 10; ++i) {
+            tree.insert(cz::heap_allocator(), i * 2 + 1);
+        }
+    }
+    SECTION("evens") {
+        for (int i = 0; i < 10; ++i) {
+            tree.insert(cz::heap_allocator(), i * 2);
+        }
+    }
+    SECTION("all") {
+        for (int i = 0; i < 20; ++i) {
+            tree.insert(cz::heap_allocator(), i);
+        }
+    }
+
+    for (Iterator<int> start = tree.start_iter(4), end = tree.end_iter(12); start < end; ++start) {
+        CHECK(*start >= 4);
+        CHECK(*start < 12);
+    }
+
+    for (Iterator<int> start = tree.start_iter(3), end = tree.end_iter(13); start < end; ++start) {
+        CHECK(*start >= 3);
+        CHECK(*start < 13);
+    }
+}

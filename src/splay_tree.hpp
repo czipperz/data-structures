@@ -27,6 +27,9 @@ struct Tree {
     Iterator<const T> start() const;
     Iterator<const T> end() const;
 
+    Iterator<T> start_iter(const T& first) { return find_greater_equal(first); }
+    Iterator<T> end_iter(const T& last) { return find_greater_equal(last); }
+
     /// Get iterators based on the position of the query.
     /// If there are no matches then `end` is returned.
     /// These methods `splay` so are not const.

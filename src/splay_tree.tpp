@@ -85,18 +85,18 @@ bool Tree<T>::insert(cz::Allocator allocator, const T& element) {
 
     // Special case empty tree.
     if (!root) {
-        Node<T>* parent = allocator.alloc<Node<T> >();
-        CZ_ASSERT(parent);
-        parent->parent = nullptr;
-        parent->left = nullptr;
-        parent->right = nullptr;
-        parent->element = element;
-        root = parent;
+        Node<T>* node = allocator.alloc<Node<T> >();
+        CZ_ASSERT(node);
+        node->parent = nullptr;
+        node->left = nullptr;
+        node->right = nullptr;
+        node->element = element;
+        root = node;
         return true;
     }
 
     int64_t last_comparison;
-    Iterator<T> it = find_gen(this, element, &last_comparison);
+    Node<T>* guess = gen::find(root, element, &last_comparison);
 
     // Already present.
     if (last_comparison == 0) {
@@ -105,39 +105,39 @@ bool Tree<T>::insert(cz::Allocator allocator, const T& element) {
 
     // Insert node.
     // Create parent node.
-    Node<T>* parent = allocator.alloc<Node<T> >();
-    CZ_ASSERT(parent);
-    CZ_DEBUG_ASSERT(it.node);
+    Node<T>* node = allocator.alloc<Node<T> >();
+    CZ_ASSERT(node);
+    CZ_DEBUG_ASSERT(guess);
 
-    parent->element = element;
+    node->element = element;
 
     // Hook parent.
-    parent->parent = it.node->parent;
-    if (parent->parent) {
-        if (parent->parent->left == it.node) {
-            parent->parent->left = parent;
+    node->parent = guess->parent;
+    if (node->parent) {
+        if (node->parent->left == guess) {
+            node->parent->left = node;
         } else {
-            parent->parent->right = parent;
+            node->parent->right = node;
         }
     } else {
         // Done below.
-        // root = parent;
+        // root = node;
     }
 
     // Child's side depends on its relationship to element.
     if (last_comparison > 0) {
-        parent->left = it.node;
-        parent->right = nullptr;
-        CZ_DEBUG_ASSERT(parent->element > ((Node<T>*)parent->left)->element);
+        node->left = guess;
+        node->right = nullptr;
+        CZ_DEBUG_ASSERT(node->element > ((Node<T>*)node->left)->element);
     } else {
-        parent->left = nullptr;
-        parent->right = it.node;
-        CZ_DEBUG_ASSERT(parent->element < ((Node<T>*)parent->right)->element);
+        node->left = nullptr;
+        node->right = guess;
+        CZ_DEBUG_ASSERT(node->element < ((Node<T>*)node->right)->element);
     }
-    it.node->parent = parent;
+    guess->parent = node;
 
-    splay(parent);
-    root = parent;
+    splay(node);
+    root = node;
 
     return true;
 }

@@ -37,12 +37,15 @@ size_t count(Node_Base*);
 
 template <class T>
 void recursive_dealloc(cz::Allocator allocator, Node<T>* node) {
-    if (!node)
-        return;
+    while (1) {
+        if (!node)
+            return;
 
-    recursive_dealloc(allocator, (Node<T>*)node->left);
-    recursive_dealloc(allocator, (Node<T>*)node->right);
-    allocator.dealloc(node);
+        recursive_dealloc(allocator, (Node<T>*)node->left);
+        Node<T>* right = (Node<T>*)node->right;
+        allocator.dealloc(node);
+        node = right;
+    }
 }
 
 template <class T>

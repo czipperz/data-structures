@@ -37,6 +37,18 @@ struct Map {
     Iterator<const Pair> start() const { return tree.start(); }
     Iterator<const Pair> end() const { return tree.end(); }
 
+    /// Convenience methods for loops.
+    /// Example:
+    /// ```
+    /// Map<int, String> map;
+    /// for (Map_Iterator<int, String> it = map.start_iter(1), end = map.end_iter(5);
+    ///      it < end; ++it) {
+    ///     CZ_ASSERT(*it >= 1 && *it < 5);
+    /// }
+    /// ```
+    Iterator<Pair> start_iter(const Key& first) { return find_greater_equal(first); }
+    Iterator<Pair> end_iter(const Key& last) { return find_greater_equal(last); }
+
     /// Get iterators based on the position of the element.
     /// If there are no matches then `end` is returned.
     /// These methods `splay` so are not const.

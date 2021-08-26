@@ -27,6 +27,14 @@ struct Tree {
     Iterator<const T> start() const;
     Iterator<const T> end() const;
 
+    /// Convenience methods for loops.
+    /// Example:
+    /// ```
+    /// Tree<int> tree;
+    /// for (Iterator<int> it = tree.start_iter(1), end = tree.end_iter(5); it < end; ++it) {
+    ///     CZ_ASSERT(*it >= 1 && *it < 5);
+    /// }
+    /// ```
     Iterator<T> start_iter(const T& first) { return find_greater_equal(first); }
     Iterator<T> end_iter(const T& last) { return find_greater_equal(last); }
 

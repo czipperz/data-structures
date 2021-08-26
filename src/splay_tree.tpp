@@ -85,12 +85,14 @@ bool Tree<T>::insert(cz::Allocator allocator, const T& element) {
 
     // Special case empty tree.
     if (!root) {
-        root = allocator.alloc<Node<T> >();
-        CZ_ASSERT(root);
-        root->parent = nullptr;
-        root->left = nullptr;
-        root->right = nullptr;
-        root->element = element;
+        Node<T>* parent = allocator.alloc<Node<T> >();
+        CZ_ASSERT(parent);
+        parent->parent = nullptr;
+        parent->left = nullptr;
+        parent->right = nullptr;
+        parent->element = element;
+        root = parent;
+        return true;
     }
 
     int64_t last_comparison;

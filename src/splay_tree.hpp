@@ -27,15 +27,15 @@ struct Tree {
     Iterator<const T> start() const;
     Iterator<const T> end() const;
 
-    /// Get iterators based on the position of the element.
+    /// Get iterators based on the position of the query.
     /// If there are no matches then `end` is returned.
     /// These methods `splay` so are not const.
-    Iterator<T> find(const T& element) { return find_equal(element); }
-    Iterator<T> find_equal(const T& element);
-    Iterator<T> find_less(const T& element);
-    Iterator<T> find_greater(const T& element);
-    Iterator<T> find_less_equal(const T& element);
-    Iterator<T> find_greater_equal(const T& element);
+    Iterator<T> find(const T& query) { return find_equal(query); }
+    Iterator<T> find_equal(const T& query);
+    Iterator<T> find_less(const T& query);
+    Iterator<T> find_greater(const T& query);
+    Iterator<T> find_less_equal(const T& query);
+    Iterator<T> find_greater_equal(const T& query);
 
     bool contains(const T& element) { return find(element) != end(); }
 
@@ -43,6 +43,23 @@ struct Tree {
 
     Node<T>* root;
 };
+
+namespace detail {
+
+/// Same as `Tree` methods above except uses `comparator(node->element)`
+/// instead of `compare(query, node->element)` to compare.
+template <class T, class Comparator>
+Iterator<T> find_equal_comparator(Tree<T>* tree, Comparator&& comparator);
+template <class T, class Comparator>
+Iterator<T> find_less_comparator(Tree<T>* tree, Comparator&& comparator);
+template <class T, class Comparator>
+Iterator<T> find_greater_comparator(Tree<T>* tree, Comparator&& comparator);
+template <class T, class Comparator>
+Iterator<T> find_less_equal_comparator(Tree<T>* tree, Comparator&& comparator);
+template <class T, class Comparator>
+Iterator<T> find_greater_equal_comparator(Tree<T>* tree, Comparator&& comparator);
+
+}
 
 }
 }

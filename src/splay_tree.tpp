@@ -69,9 +69,9 @@ static void splay(gen::Node<T>* elem) {
     gen::val_node((Node<T>*)elem, (Node<T>*)nullptr);
 }
 
-template <class T>
-static Iterator<T> find_gen(Tree<T>* tree, const T& element, int64_t* last_comparison) {
-    Node<T>* parent = gen::find(tree->root, element, last_comparison);
+template <class T, class Comparator>
+static Iterator<T> find_gen(Tree<T>* tree, int64_t* last_comparison, Comparator&& comparator) {
+    Node<T>* parent = gen::find_comparator(tree->root, last_comparison, comparator);
 
     splay(parent);
     tree->root = parent;
@@ -96,7 +96,7 @@ bool Tree<T>::insert(cz::Allocator allocator, const T& element) {
     }
 
     int64_t last_comparison;
-    Node<T>* guess = gen::find(root, element, &last_comparison);
+    Node<T>* guess = gen::find(root, &last_comparison, element);
 
     // Already present.
     if (last_comparison == 0) {
@@ -128,11 +128,13 @@ bool Tree<T>::insert(cz::Allocator allocator, const T& element) {
     if (last_comparison > 0) {
         node->left = guess;
         node->right = nullptr;
-        CZ_DEBUG_ASSERT(node->element > ((Node<T>*)node->left)->element);
+        using cz::compare;
+        CZ_DEBUG_ASSERT(compare(node->element, ((Node<T>*)node->left)->element) > 0);
     } else {
         node->left = nullptr;
         node->right = guess;
-        CZ_DEBUG_ASSERT(node->element < ((Node<T>*)node->right)->element);
+        using cz::compare;
+        CZ_DEBUG_ASSERT(compare(node->element, ((Node<T>*)node->right)->element) < 0);
     }
     guess->parent = node;
 
@@ -175,69 +177,96 @@ Iterator<const T> Tree<T>::end() const {
 
 template <class T>
 Iterator<T> Tree<T>::find_equal(const T& element) {
-    int64_t last_comparison;
-    Iterator<T> iterator = find_gen(this, element, &last_comparison);
-    if (last_comparison == 0) {
-        return iterator;
-    } else {
-        return end();
-    }
+    return detail::find_equal_comparator(this, gen::element_comparator(element));
 }
 template <class T>
 Iterator<T> Tree<T>::find_less(const T& element) {
-    int64_t last_comparison;
-    Iterator<T> iterator = find_gen(this, element, &last_comparison);
-    if (last_comparison > 0) {
-        return iterator;
-    } else if (iterator == start()) {
-        return end();
-    } else {
-        --iterator;
-        CZ_DEBUG_ASSERT(iterator == end() || *iterator < element);
-        return iterator;
-    }
+    return detail::find_less_comparator(this, gen::element_comparator(element));
 }
 template <class T>
 Iterator<T> Tree<T>::find_greater(const T& element) {
-    int64_t last_comparison;
-    Iterator<T> iterator = find_gen(this, element, &last_comparison);
-    if (last_comparison < 0) {
-        return iterator;
-    } else if (iterator == end()) {
-        return end();
-    } else {
-        ++iterator;
-        CZ_DEBUG_ASSERT(iterator == end() || *iterator > element);
-        return iterator;
-    }
+    return detail::find_greater_comparator(this, gen::element_comparator(element));
 }
 template <class T>
 Iterator<T> Tree<T>::find_less_equal(const T& element) {
-    int64_t last_comparison;
-    Iterator<T> iterator = find_gen(this, element, &last_comparison);
-    if (last_comparison >= 0) {
-        return iterator;
-    } else if (iterator == start()) {
-        return end();
-    } else {
-        --iterator;
-        CZ_DEBUG_ASSERT(iterator == end() || *iterator < element);
-        return iterator;
-    }
+    return detail::find_less_equal_comparator(this, gen::element_comparator(element));
 }
 template <class T>
 Iterator<T> Tree<T>::find_greater_equal(const T& element) {
+    return detail::find_greater_equal_comparator(this, gen::element_comparator(element));
+}
+
+namespace detail {
+
+template <class T, class Comparator>
+Iterator<T> find_equal_comparator(Tree<T>* tree, Comparator&& comparator) {
     int64_t last_comparison;
-    Iterator<T> iterator = find_gen(this, element, &last_comparison);
-    if (last_comparison <= 0) {
+    Iterator<T> iterator = find_gen(tree, &last_comparison, comparator);
+    if (last_comparison == 0) {
         return iterator;
-    } else if (iterator == end()) {
-        return end();
     } else {
-        ++iterator;
-        CZ_DEBUG_ASSERT(iterator == end() || *iterator > element);
+        return tree->end();
+    }
+}
+template <class T, class Comparator>
+Iterator<T> find_less_comparator(Tree<T>* tree, Comparator&& comparator) {
+    int64_t last_comparison;
+    Iterator<T> iterator = find_gen(tree, &last_comparison, comparator);
+    if (last_comparison > 0) {
+        return iterator;
+        // Not necessary because --tree->start() == tree->end().
+        // } else if (iterator == tree->start()) {
+        //     return tree->end();
+    } else {
+        --iterator;
+        CZ_DEBUG_ASSERT(iterator == tree->end() || comparator(*iterator) > 0);
         return iterator;
     }
+}
+template <class T, class Comparator>
+Iterator<T> find_greater_comparator(Tree<T>* tree, Comparator&& comparator) {
+    int64_t last_comparison;
+    Iterator<T> iterator = find_gen(tree, &last_comparison, comparator);
+    if (last_comparison < 0) {
+        return iterator;
+    } else if (iterator == tree->end()) {
+        return tree->end();
+    } else {
+        ++iterator;
+        CZ_DEBUG_ASSERT(iterator == tree->end() || comparator(*iterator) < 0);
+        return iterator;
+    }
+}
+template <class T, class Comparator>
+Iterator<T> find_less_equal_comparator(Tree<T>* tree, Comparator&& comparator) {
+    int64_t last_comparison;
+    Iterator<T> iterator = find_gen(tree, &last_comparison, comparator);
+    if (last_comparison >= 0) {
+        return iterator;
+        // Not necessary because --tree->start() == tree->end().
+        // } else if (iterator == start()) {
+        //     return tree->end();
+    } else {
+        --iterator;
+        CZ_DEBUG_ASSERT(iterator == tree->end() || comparator(*iterator) > 0);
+        return iterator;
+    }
+}
+template <class T, class Comparator>
+Iterator<T> find_greater_equal_comparator(Tree<T>* tree, Comparator&& comparator) {
+    int64_t last_comparison;
+    Iterator<T> iterator = find_gen(tree, &last_comparison, comparator);
+    if (last_comparison <= 0) {
+        return iterator;
+    } else if (iterator == tree->end()) {
+        return tree->end();
+    } else {
+        ++iterator;
+        CZ_DEBUG_ASSERT(iterator == tree->end() || comparator(*iterator) < 0);
+        return iterator;
+    }
+}
+
 }
 
 }

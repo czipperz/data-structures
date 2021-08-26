@@ -236,6 +236,28 @@ TEST_CASE("Splay_Tree linear insertion") {
     CHECK(tree.start() == tree.end());
 }
 
+TEST_CASE("Splay_Tree linear insertion reverse") {
+    Tree<int> tree = {};
+    CZ_DEFER(tree.drop(cz::heap_allocator()));
+
+    for (int i = 4096; i-- > 0;) {
+        tree.insert(cz::heap_allocator(), i);
+    }
+
+    Iterator<int> iter = tree.start();
+    for (int i = 0; i < 4096; ++i) {
+        REQUIRE(iter != tree.end());
+        CHECK(*iter == i);
+        ++iter;
+    }
+
+    for (int i = 0; i < 4096; ++i) {
+        tree.remove(cz::heap_allocator(), tree.start());
+    }
+
+    CHECK(tree.start() == tree.end());
+}
+
 TEST_CASE("Splay_Tree random insertion") {
     Tree<int> tree = {};
     CZ_DEFER(tree.drop(cz::heap_allocator()));
@@ -246,7 +268,7 @@ TEST_CASE("Splay_Tree random insertion") {
         nums.reserve_exact(cz::heap_allocator(), 4096);
 
         while (nums.len < nums.cap) {
-            nums.push(nums.len);
+            nums.push((int)nums.len);
         }
 
         std::mt19937 g{std::random_device{}()};

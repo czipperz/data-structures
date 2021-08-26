@@ -94,6 +94,7 @@ void val_node(Node<T>* node, Node<T>* parent) {
 
     CZ_ASSERT(node->parent == parent);
 
+    using cz::compare;
     if (node->left) {
         CZ_ASSERT(((Node<T>*)node->left)->element < node->element);
     }
@@ -103,14 +104,28 @@ void val_node(Node<T>* node, Node<T>* parent) {
 }
 
 template <class T>
-Node<T>* find(Node<T>* root, const T& element, int64_t* last_comparison) {
+struct Element_Comparator {
+    const T* element;
+    int64_t operator()(const T& other) const {
+        using cz::compare;
+        return compare(*element, other);
+    }
+};
+/// Convenience constructor.
+template <class T>
+Element_Comparator<T> element_comparator(const T& element) {
+    return {&element};
+}
+
+template <class T, class Comparator>
+Node<T>* find_comparator(Node<T>* root, int64_t* last_comparison, Comparator&& comparator) {
     Node<T>* parent = nullptr;
     Node<T>* node = root;
     int64_t comparison = 0;
     while (node) {
         gen::Node_Base* new_node = nullptr;
 
-        comparison = cz::compare(element, node->element);
+        comparison = comparator(node->element);
         if (comparison < 0) {
             new_node = node->left;
         } else if (comparison > 0) {
@@ -125,6 +140,11 @@ Node<T>* find(Node<T>* root, const T& element, int64_t* last_comparison) {
 
     *last_comparison = comparison;
     return parent;
+}
+
+template <class T>
+Node<T>* find(Node<T>* root, int64_t* last_comparison, const T& element) {
+    return find_comparator(root, last_comparison, element_comparator(element));
 }
 
 }

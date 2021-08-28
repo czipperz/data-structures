@@ -51,7 +51,10 @@ void BTree<T, Maximum_Elements>::drop(cz::Allocator allocator) {
 
 namespace detail {
 template <class T, size_t Maximum_Elements>
-void insert_inplace(Node<T, Maximum_Elements>* node, const T& element, size_t index) {
+void insert_inplace(Node<T, Maximum_Elements>* node,
+                    const T& element,
+                    Node<T, Maximum_Elements>* child,
+                    size_t index) {
     for (size_t i = node->num_elements + 1; i-- > index;) {
         node->children[i + 1] = node->children[i];
     }
@@ -60,6 +63,7 @@ void insert_inplace(Node<T, Maximum_Elements>* node, const T& element, size_t in
     }
 
     node->elements[index] = element;
+    node->children[index + 1] = child;
     ++node->num_elements;
 }
 
@@ -67,16 +71,15 @@ template <class T, size_t Maximum_Elements>
 void split_node_insert(Node<T, Maximum_Elements>* left,
                        Node<T, Maximum_Elements>* right,
                        const T& element,
+                       Node<T, Maximum_Elements>* element_child,
                        size_t element_index,
-                       T* middle) {
+                       const T** middle) {
     CZ_DEBUG_ASSERT(left->num_elements == Maximum_Elements);
 
-    right->children[0] = nullptr;
-
-    const size_t split = (Maximum_Elements + 1) / 2;
+    const size_t split = Maximum_Elements / 2 + 1;
     left->num_elements = split;
 
-    if (element_index >= split) {
+    if (element_index > split) {
         size_t i = split;
         for (; i < element_index; ++i) {
             right->elements[i - split] = left->elements[i];
@@ -84,7 +87,7 @@ void split_node_insert(Node<T, Maximum_Elements>* left,
         }
 
         right->elements[i - split] = element;
-        right->children[i - split + 1] = nullptr;
+        right->children[i - split + 1] = element_child;
         ++i;
 
         for (; i < Maximum_Elements + 1; ++i) {
@@ -97,14 +100,15 @@ void split_node_insert(Node<T, Maximum_Elements>* left,
             right->children[i - split + 1] = left->children[i + 1];
         }
 
-        insert_inplace(left, element, element_index);
+        insert_inplace(left, element, element_child, element_index);
     }
 
     right->num_elements = Maximum_Elements - split;
 
     --left->num_elements;
-    *middle = left->elements[left->num_elements];
-    CZ_DEBUG_ASSERT(left->children[left->num_elements + 1] == nullptr);
+    *middle = &left->elements[left->num_elements];
+    right->children[0] = left->children[left->num_elements + 1];
+    CZ_DEBUG_ASSERT(left->num_elements + right->num_elements == Maximum_Elements);
 }
 }
 
@@ -125,51 +129,65 @@ bool BTree<T, Maximum_Elements>::insert(cz::Allocator allocator, const T& elemen
 
     Node* node = root;
 
+    // Find a leaf node to insert into.
+    size_t index;
     while (1) {
-        size_t index;
         if (detail::binary_search({node->elements, node->num_elements}, element, &index)) {
             return false;
         }
 
-        // If not a leaf node then descend one level.
-        if (node->children[index]) {
-            node = node->children[index];
-            continue;
+        if (!node->children[index]) {
+            break;
         }
 
+        node = node->children[index];
+    }
+
+    // Split then insert, stepping up one level each time.
+    const T* pelement = &element;
+    Node* child = nullptr;
+    while (1) {
         // Simply insert into this node.
         if (node->num_elements < Maximum_Elements) {
-            detail::insert_inplace(node, element, index);
+            detail::insert_inplace(node, *pelement, child, index);
             return true;
         }
 
-        // Split leaf into 2 leafs.
-        T middle;
+        // Split node into two.  `node` becomes the left side.
         Node* right = allocator.alloc<Node>();
         CZ_ASSERT(right);
         right->parent = nullptr;
         right->parent_index = 0;
         right->num_elements = 0;
 
-        detail::split_node_insert(node, right, element, index, &middle);
+        detail::split_node_insert(node, right, *pelement, child, index, &pelement);
 
-        // Make new root node.
-        Node* new_root = allocator.alloc<Node>();
-        CZ_ASSERT(new_root);
-        new_root->parent = nullptr;
-        new_root->parent_index = 0;
-        new_root->num_elements = 1;
-        new_root->children[0] = node;
-        new_root->children[1] = right;
-        new_root->elements[0] = middle;
-        root = new_root;
+        child = right;
 
-        node->parent = new_root;
-        node->parent_index = 0;
-        right->parent = new_root;
-        right->parent_index = 1;
+        if (!node->parent) {
+            // Make new root node.
+            Node* new_root = allocator.alloc<Node>();
+            CZ_ASSERT(new_root);
+            new_root->parent = nullptr;
+            new_root->parent_index = 0;
+            new_root->num_elements = 1;
+            new_root->children[0] = node;
+            new_root->children[1] = right;
+            new_root->elements[0] = *pelement;
+            root = new_root;
 
-        return true;
+            node->parent = new_root;
+            node->parent_index = 0;
+            right->parent = new_root;
+            right->parent_index = 1;
+            return true;
+        }
+
+        // Recurse into parent.
+        right->parent = node->parent;
+        right->parent_index = node->parent_index + 1;
+        node = node->parent;
+        index = node->parent_index + 1;
     }
 }
 

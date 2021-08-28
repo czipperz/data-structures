@@ -125,13 +125,18 @@ bool BTree<T, Maximum_Elements>::insert(cz::Allocator allocator, const T& elemen
 
     Node* node = root;
 
-    size_t index;
-    if (detail::binary_search({node->elements, node->num_elements}, element, &index)) {
-        return false;
-    }
+    while (1) {
+        size_t index;
+        if (detail::binary_search({node->elements, node->num_elements}, element, &index)) {
+            return false;
+        }
 
-    // Leaf node.
-    if (!node->children[index]) {
+        // If not a leaf node then descend one level.
+        if (node->children[index]) {
+            node = node->children[index];
+            continue;
+        }
+
         // Simply insert into this node.
         if (node->num_elements < Maximum_Elements) {
             detail::insert_inplace(node, element, index);
@@ -166,8 +171,6 @@ bool BTree<T, Maximum_Elements>::insert(cz::Allocator allocator, const T& elemen
 
         return true;
     }
-
-    CZ_PANIC("unimplemented");
 }
 
 namespace detail {

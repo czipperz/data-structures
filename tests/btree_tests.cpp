@@ -63,7 +63,6 @@ TEST_CASE("BTree insert split root") {
     CHECK(it == btree.end());
 }
 
-#if 0
 TEST_CASE("BTree insert into children of root") {
     BTree<int, 4> btree = {};
     CZ_DEFER(btree.drop(cz::heap_allocator()));
@@ -107,4 +106,3 @@ TEST_CASE("BTree insert into children of root") {
 
     CHECK(it == btree.end());
 }
-#endif

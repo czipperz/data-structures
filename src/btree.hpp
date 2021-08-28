@@ -31,11 +31,25 @@ struct Iterator {
     operator Iterator<const T>() const { return {node, index}; }
 
     Iterator& operator++() {
-        ++index;
+        if (node->children[index + 1]) {
+            node = node->children[index + 1];
+            index = 0;
+            while (node->children[0])
+                node = node->children[0];
+        } else {
+            ++index;
+            while (index == node->num_elements) {
+                if (!node->parent) {
+                    return *this;
+                }
+                index = node->parent_index;
+                node = node->parent;
+            }
+        }
         return *this;
     }
     Iterator& operator--() {
-        --index;
+        CZ_PANIC("unimplemented");
         return *this;
     }
 
@@ -51,6 +65,7 @@ struct BTree {
     using Node = Node<T, Maximum_Elements>;
     using Iterator = ds::btree::Iterator<T, Maximum_Elements>;
     using Const_Iterator = ds::btree::Iterator<const T, Maximum_Elements>;
+    constexpr static const size_t M = Maximum_Elements;
 
     void drop(cz::Allocator allocator);
 

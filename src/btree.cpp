@@ -79,7 +79,7 @@ void split_node_insert(Node<T, Maximum_Elements>* left,
     const size_t split = Maximum_Elements / 2 + 1;
     left->num_elements = split;
 
-    if (element_index > split) {
+    if (element_index >= split) {
         size_t i = split;
         for (; i < element_index; ++i) {
             right->elements[i - split] = left->elements[i];
@@ -88,27 +88,35 @@ void split_node_insert(Node<T, Maximum_Elements>* left,
 
         right->elements[i - split] = element;
         right->children[i - split + 1] = element_child;
-        ++i;
 
-        for (; i < Maximum_Elements + 1; ++i) {
-            right->elements[i - split] = left->elements[i];
-            right->children[i - split + 1] = left->children[i + 1];
+        for (; i < Maximum_Elements; ++i) {
+            right->elements[i - split + 1] = left->elements[i];
+            right->children[i - split + 2] = left->children[i + 1];
         }
+
+        right->num_elements = Maximum_Elements + 1 - split;
     } else {
-        for (size_t i = split; i < Maximum_Elements; ++i) {
+        for (size_t i = split - 1; i < Maximum_Elements; ++i) {
             right->elements[i - split] = left->elements[i];
             right->children[i - split + 1] = left->children[i + 1];
         }
 
         insert_inplace(left, element, element_child, element_index);
+        right->num_elements = Maximum_Elements - split;
     }
-
-    right->num_elements = Maximum_Elements - split;
 
     --left->num_elements;
     *middle = &left->elements[left->num_elements];
     right->children[0] = left->children[left->num_elements + 1];
     CZ_DEBUG_ASSERT(left->num_elements + right->num_elements == Maximum_Elements);
+
+    for (size_t i = 0; i < right->num_elements + 1; ++i) {
+        Node<T, Maximum_Elements>* child = right->children[i];
+        if (!child)
+            break;
+        child->parent = right;
+        child->parent_index = i;
+    }
 }
 }
 
@@ -186,8 +194,8 @@ bool BTree<T, Maximum_Elements>::insert(cz::Allocator allocator, const T& elemen
         // Recurse into parent.
         right->parent = node->parent;
         right->parent_index = node->parent_index + 1;
-        node = node->parent;
-        index = node->parent_index + 1;
+        index = node->parent_index;
+        node = right->parent;
     }
 }
 

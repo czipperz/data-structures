@@ -211,3 +211,31 @@ TEST_CASE("BTree insert 100 elements reverse") {
         REQUIRE(it == btree.end());
     }
 }
+
+TEST_CASE("BTree insert 100 elements random") {
+    BTree<int, 4> btree = {};
+    CZ_DEFER(btree.drop(cz::heap_allocator()));
+
+    {
+        int nums[100];
+        for (int i = 0; i < 100; ++i) {
+            nums[i] = i;
+        }
+
+        std::mt19937 g{std::random_device{}()};
+        std::shuffle(nums, nums + 100, g);
+
+        for (int i = 0; i < 100; ++i) {
+            btree.insert(cz::heap_allocator(), nums[i]);
+        }
+    }
+
+    Iterator<int, 4> it = btree.start();
+    for (int j = 0; j < 100; ++j) {
+        INFO("j = " << j);
+        REQUIRE(it != btree.end());
+        CHECK(*it == j);
+        ++it;
+    }
+    REQUIRE(it == btree.end());
+}

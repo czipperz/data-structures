@@ -192,3 +192,22 @@ TEST_CASE("BTree insert 100 elements") {
         REQUIRE(it == btree.end());
     }
 }
+
+TEST_CASE("BTree insert 100 elements reverse") {
+    BTree<int, 4> btree = {};
+    CZ_DEFER(btree.drop(cz::heap_allocator()));
+
+    for (int i = 100; i-- > 0;) {
+        INFO("i = " << i);
+        btree.insert(cz::heap_allocator(), i);
+
+        Iterator<int, 4> it = btree.start();
+        for (int j = i; j < 100; ++j) {
+            INFO("j = " << j);
+            REQUIRE(it != btree.end());
+            CHECK(*it == j);
+            ++it;
+        }
+        REQUIRE(it == btree.end());
+    }
+}

@@ -58,6 +58,11 @@ void insert_inplace(Node<T, Maximum_Elements>* node,
     for (size_t i = node->num_elements + 1; i-- > index;) {
         node->children[i + 1] = node->children[i];
     }
+    for (size_t i = index + 1; i < node->num_elements + 1; ++i) {
+        if (!node->children[i + 1])
+            break;
+        ++node->children[i + 1]->parent_index;
+    }
     for (size_t i = node->num_elements; i-- > index;) {
         node->elements[i + 1] = node->elements[i];
     }
@@ -76,8 +81,7 @@ void split_node_insert(Node<T, Maximum_Elements>* left,
                        const T** middle) {
     CZ_DEBUG_ASSERT(left->num_elements == Maximum_Elements);
 
-    const size_t split = Maximum_Elements / 2 + 1;
-    left->num_elements = split;
+    size_t split = Maximum_Elements / 2 + 1;
 
     if (element_index >= split) {
         size_t i = split;
@@ -94,13 +98,17 @@ void split_node_insert(Node<T, Maximum_Elements>* left,
             right->children[i - split + 2] = left->children[i + 1];
         }
 
+        left->num_elements = split;
         right->num_elements = Maximum_Elements + 1 - split;
     } else {
-        for (size_t i = split - 1; i < Maximum_Elements; ++i) {
+        --split;
+
+        for (size_t i = split; i < Maximum_Elements; ++i) {
             right->elements[i - split] = left->elements[i];
             right->children[i - split + 1] = left->children[i + 1];
         }
 
+        left->num_elements = split;
         insert_inplace(left, element, element_child, element_index);
         right->num_elements = Maximum_Elements - split;
     }

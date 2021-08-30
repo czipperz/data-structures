@@ -28,7 +28,9 @@ struct Iterator {
 
     T& operator*() const { return node->elements[index]; }
     T* operator->() const { return &node->elements[index]; }
-    operator Iterator<const T>() const { return {node, index}; }
+    operator Iterator<const T, Maximum_Elements>() const {
+        return {(Node<const T, Maximum_Elements>*)node, index};
+    }
 
     Iterator& operator++() {
         if (node->children[index + 1]) {
@@ -107,6 +109,13 @@ struct Tree : Tree_Base<T, Maximum_Elements> {
     Iterator find_gt(const T& element);
     Iterator find_le(const T& element);
     Iterator find_ge(const T& element);
+
+    Const_Iterator find(const T& element) const { return find_eq(element); }
+    Const_Iterator find_eq(const T& element) const;
+    Const_Iterator find_lt(const T& element) const;
+    Const_Iterator find_gt(const T& element) const;
+    Const_Iterator find_le(const T& element) const;
+    Const_Iterator find_ge(const T& element) const;
 };
 
 template <class T, size_t Maximum_Elements = Default_Maximum_Elements<T>::value>
@@ -128,6 +137,21 @@ struct Tree_Comparator : Tree_Base<T, Maximum_Elements> {
     Iterator find_le(Comparator&& comparator);
     template <class Comparator>
     Iterator find_ge(Comparator&& comparator);
+
+    template <class Comparator>
+    Const_Iterator find(const T& element, Comparator&& comparator) const {
+        return find_eq(element, comparator);
+    }
+    template <class Comparator>
+    Const_Iterator find_eq(Comparator&& comparator) const;
+    template <class Comparator>
+    Const_Iterator find_lt(Comparator&& comparator) const;
+    template <class Comparator>
+    Const_Iterator find_gt(Comparator&& comparator) const;
+    template <class Comparator>
+    Const_Iterator find_le(Comparator&& comparator) const;
+    template <class Comparator>
+    Const_Iterator find_ge(Comparator&& comparator) const;
 };
 
 }

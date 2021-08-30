@@ -20,14 +20,16 @@ struct Map {
     /// Insert the element into the tree.  If the element already
     /// is present then does nothing and returns `false`.
     bool insert(cz::Allocator allocator, const Key& key, const Value& value) {
-        return tree.insert(allocator, {key, value});
+        return insert(allocator, {key, value});
     }
-    bool insert(cz::Allocator allocator, const Pair& pair) { return tree.insert(allocator, pair); }
+    bool insert(cz::Allocator allocator, const Pair& pair) {
+        return tree.insert(allocator, pair, cz::compare<Pair>);
+    }
 
     /// Remove the element at the iterator.
     /// If the iterator is `end` then nothing is done.
     void remove(cz::Allocator allocator, Iterator<const Pair> iterator) {
-        return tree.remove(allocator, iterator);
+        return tree.remove(allocator, iterator, cz::compare<Pair>);
     }
 
     /// Get iterators allowing you to iterate through the entire tree.
@@ -47,6 +49,8 @@ struct Map {
     /// ```
     Iterator<Pair> start_iter(const Key& first) { return find_ge(first); }
     Iterator<Pair> end_iter(const Key& last) { return find_ge(last); }
+    Iterator<const Pair> start_iter(const Key& first) const { return find_ge(first); }
+    Iterator<const Pair> end_iter(const Key& last) const { return find_ge(last); }
 
     /// Get iterators based on the position of the element.
     /// If there are no matches then `end` is returned.
@@ -57,6 +61,12 @@ struct Map {
     Iterator<Pair> find_gt(const Key& key);
     Iterator<Pair> find_le(const Key& key);
     Iterator<Pair> find_ge(const Key& key);
+    Iterator<const Pair> find(const Key& key) const { return find_eq(key); }
+    Iterator<const Pair> find_eq(const Key& key) const;
+    Iterator<const Pair> find_lt(const Key& key) const;
+    Iterator<const Pair> find_gt(const Key& key) const;
+    Iterator<const Pair> find_le(const Key& key) const;
+    Iterator<const Pair> find_ge(const Key& key) const;
 
     Tree_Comparator<Pair> tree;
 };

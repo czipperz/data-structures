@@ -44,7 +44,7 @@ bool binary_search(cz::Slice<const T> slice,
     }
 
     *index = start;
-    return comparator(element, slice[start]) == 0;
+    return start < slice.len && comparator(element, slice[start]) == 0;
 }
 
 template <class T, class Comparator>
@@ -256,7 +256,7 @@ bool Tree_Comparator<T, Maximum_Elements>::insert(cz::Allocator allocator,
 
 namespace detail {
 template <class T, size_t Maximum_Elements>
-Iterator<T, Maximum_Elements> const_start(const Tree_Base<T, Maximum_Elements>* btree) {
+Iterator<T, Maximum_Elements> start(const Tree_Base<T, Maximum_Elements>* btree) {
     if (!btree->root)
         return {};
 
@@ -267,7 +267,7 @@ Iterator<T, Maximum_Elements> const_start(const Tree_Base<T, Maximum_Elements>* 
     return {node, 0};
 }
 template <class T, size_t Maximum_Elements>
-Iterator<T, Maximum_Elements> const_end(const Tree_Base<T, Maximum_Elements>* btree) {
+Iterator<T, Maximum_Elements> end(const Tree_Base<T, Maximum_Elements>* btree) {
     if (!btree->root)
         return {};
 
@@ -278,27 +278,31 @@ Iterator<T, Maximum_Elements> const_end(const Tree_Base<T, Maximum_Elements>* bt
 
 template <class T, size_t Maximum_Elements>
 Iterator<T, Maximum_Elements> Tree_Base<T, Maximum_Elements>::start() {
-    return detail::const_start(this);
+    return detail::start(this);
 }
 template <class T, size_t Maximum_Elements>
 Iterator<const T, Maximum_Elements> Tree_Base<T, Maximum_Elements>::start() const {
-    return detail::const_start(this);
+    return detail::start(this);
 }
 template <class T, size_t Maximum_Elements>
 Iterator<T, Maximum_Elements> Tree_Base<T, Maximum_Elements>::end() {
-    return detail::const_end(this);
+    return detail::end(this);
 }
 template <class T, size_t Maximum_Elements>
 Iterator<const T, Maximum_Elements> Tree_Base<T, Maximum_Elements>::end() const {
-    return detail::const_end(this);
+    return detail::end(this);
 }
 
 namespace detail {
 template <class T, size_t Maximum_Elements, class Comparator>
-Iterator<T, Maximum_Elements> gen_find(Tree_Base<T, Maximum_Elements>* tree,
+Iterator<T, Maximum_Elements> gen_find(const Tree_Base<T, Maximum_Elements>* tree,
                                        Comparator&& comparator,
                                        int64_t* last_comparison) {
     Node<T, Maximum_Elements>* node = tree->root;
+    if (!node) {
+        *last_comparison = 0;
+        return detail::end(tree);
+    }
 
     // Find a leaf node to insert into.
     size_t index;
@@ -327,67 +331,67 @@ Iterator<T, Maximum_Elements> gen_find(Tree_Base<T, Maximum_Elements>* tree,
 }
 
 template <class T, size_t Maximum_Elements, class Comparator>
-Iterator<T, Maximum_Elements> find_eq(Tree_Base<T, Maximum_Elements>* tree,
+Iterator<T, Maximum_Elements> find_eq(const Tree_Base<T, Maximum_Elements>* tree,
                                       Comparator&& comparator) {
     int64_t last_comparison;
     Iterator<T, Maximum_Elements> iterator = gen_find(tree, comparator, &last_comparison);
     if (last_comparison == 0) {
         return iterator;
     } else {
-        return tree->end();
+        return detail::end(tree);
     }
 }
 template <class T, size_t Maximum_Elements, class Comparator>
-Iterator<T, Maximum_Elements> find_lt(Tree_Base<T, Maximum_Elements>* tree,
+Iterator<T, Maximum_Elements> find_lt(const Tree_Base<T, Maximum_Elements>* tree,
                                       Comparator&& comparator) {
     int64_t last_comparison;
     Iterator<T, Maximum_Elements> iterator = gen_find(tree, comparator, &last_comparison);
     if (last_comparison > 0) {
         return iterator;
     } else if (iterator == tree->start()) {
-        return tree->end();
+        return detail::end(tree);
     } else {
         --iterator;
         return iterator;
     }
 }
 template <class T, size_t Maximum_Elements, class Comparator>
-Iterator<T, Maximum_Elements> find_gt(Tree_Base<T, Maximum_Elements>* tree,
+Iterator<T, Maximum_Elements> find_gt(const Tree_Base<T, Maximum_Elements>* tree,
                                       Comparator&& comparator) {
     int64_t last_comparison;
     Iterator<T, Maximum_Elements> iterator = gen_find(tree, comparator, &last_comparison);
     if (last_comparison < 0) {
         return iterator;
     } else if (iterator == tree->end()) {
-        return tree->end();
+        return detail::end(tree);
     } else {
         ++iterator;
         return iterator;
     }
 }
 template <class T, size_t Maximum_Elements, class Comparator>
-Iterator<T, Maximum_Elements> find_le(Tree_Base<T, Maximum_Elements>* tree,
+Iterator<T, Maximum_Elements> find_le(const Tree_Base<T, Maximum_Elements>* tree,
                                       Comparator&& comparator) {
     int64_t last_comparison;
     Iterator<T, Maximum_Elements> iterator = gen_find(tree, comparator, &last_comparison);
     if (last_comparison >= 0) {
         return iterator;
     } else if (iterator == tree->start()) {
-        return tree->end();
+        return detail::end(tree);
     } else {
         --iterator;
         return iterator;
     }
 }
 template <class T, size_t Maximum_Elements, class Comparator>
-Iterator<T, Maximum_Elements> find_ge(Tree_Base<T, Maximum_Elements>* tree,
+Iterator<T, Maximum_Elements> find_ge(const Tree_Base<T, Maximum_Elements>* tree,
                                       Comparator&& comparator) {
     int64_t last_comparison;
     Iterator<T, Maximum_Elements> iterator = gen_find(tree, comparator, &last_comparison);
     if (last_comparison <= 0) {
         return iterator;
     } else if (iterator == tree->end()) {
-        return tree->end();
+        return detail::end(tree);
     } else {
         ++iterator;
         return iterator;
@@ -428,6 +432,27 @@ Iterator<T, Maximum_Elements> Tree<T, Maximum_Elements>::find_ge(const T& elemen
 }
 
 template <class T, size_t Maximum_Elements>
+Iterator<const T, Maximum_Elements> Tree<T, Maximum_Elements>::find_eq(const T& element) const {
+    return detail::find_eq(this, detail::Compare_Against<T>{&element});
+}
+template <class T, size_t Maximum_Elements>
+Iterator<const T, Maximum_Elements> Tree<T, Maximum_Elements>::find_lt(const T& element) const {
+    return detail::find_lt(this, detail::Compare_Against<T>{&element});
+}
+template <class T, size_t Maximum_Elements>
+Iterator<const T, Maximum_Elements> Tree<T, Maximum_Elements>::find_gt(const T& element) const {
+    return detail::find_gt(this, detail::Compare_Against<T>{&element});
+}
+template <class T, size_t Maximum_Elements>
+Iterator<const T, Maximum_Elements> Tree<T, Maximum_Elements>::find_le(const T& element) const {
+    return detail::find_le(this, detail::Compare_Against<T>{&element});
+}
+template <class T, size_t Maximum_Elements>
+Iterator<const T, Maximum_Elements> Tree<T, Maximum_Elements>::find_ge(const T& element) const {
+    return detail::find_ge(this, detail::Compare_Against<T>{&element});
+}
+
+template <class T, size_t Maximum_Elements>
 template <class Comparator>
 Iterator<T, Maximum_Elements> Tree_Comparator<T, Maximum_Elements>::find_eq(
     Comparator&& comparator) {
@@ -455,6 +480,37 @@ template <class T, size_t Maximum_Elements>
 template <class Comparator>
 Iterator<T, Maximum_Elements> Tree_Comparator<T, Maximum_Elements>::find_ge(
     Comparator&& comparator) {
+    return detail::find_ge(this, comparator);
+}
+
+template <class T, size_t Maximum_Elements>
+template <class Comparator>
+Iterator<const T, Maximum_Elements> Tree_Comparator<T, Maximum_Elements>::find_eq(
+    Comparator&& comparator) const {
+    return detail::find_eq(this, comparator);
+}
+template <class T, size_t Maximum_Elements>
+template <class Comparator>
+Iterator<const T, Maximum_Elements> Tree_Comparator<T, Maximum_Elements>::find_lt(
+    Comparator&& comparator) const {
+    return detail::find_lt(this, comparator);
+}
+template <class T, size_t Maximum_Elements>
+template <class Comparator>
+Iterator<const T, Maximum_Elements> Tree_Comparator<T, Maximum_Elements>::find_gt(
+    Comparator&& comparator) const {
+    return detail::find_gt(this, comparator);
+}
+template <class T, size_t Maximum_Elements>
+template <class Comparator>
+Iterator<const T, Maximum_Elements> Tree_Comparator<T, Maximum_Elements>::find_le(
+    Comparator&& comparator) const {
+    return detail::find_le(this, comparator);
+}
+template <class T, size_t Maximum_Elements>
+template <class Comparator>
+Iterator<const T, Maximum_Elements> Tree_Comparator<T, Maximum_Elements>::find_ge(
+    Comparator&& comparator) const {
     return detail::find_ge(this, comparator);
 }
 

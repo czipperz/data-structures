@@ -119,15 +119,15 @@ struct Tree_Comparator : Tree_Base<T, Maximum_Elements> {
         return find_eq(element, comparator);
     }
     template <class Comparator>
-    Iterator find_eq(const T& element, Comparator&& comparator);
+    Iterator find_eq(Comparator&& comparator);
     template <class Comparator>
-    Iterator find_lt(const T& element, Comparator&& comparator);
+    Iterator find_lt(Comparator&& comparator);
     template <class Comparator>
-    Iterator find_gt(const T& element, Comparator&& comparator);
+    Iterator find_gt(Comparator&& comparator);
     template <class Comparator>
-    Iterator find_le(const T& element, Comparator&& comparator);
+    Iterator find_le(Comparator&& comparator);
     template <class Comparator>
-    Iterator find_ge(const T& element, Comparator&& comparator);
+    Iterator find_ge(Comparator&& comparator);
 };
 
 }

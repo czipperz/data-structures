@@ -49,7 +49,25 @@ struct Iterator {
         return *this;
     }
     Iterator& operator--() {
-        CZ_PANIC("unimplemented");
+        if (node->children[index]) {
+            node = node->children[index];
+            index = node->num_elements;
+            while (node->children[index]) {
+                node = node->children[index];
+                index = node->num_elements;
+            }
+            --index;
+        } else {
+            while (index == 0) {
+                if (!node->parent) {
+                    --index;
+                    return *this;
+                }
+                index = node->parent_index;
+                node = node->parent;
+            }
+            --index;
+        }
         return *this;
     }
 
@@ -59,8 +77,8 @@ struct Iterator {
     bool operator!=(const Iterator& other) const { return !(*this == other); }
 };
 
-template <class T, size_t Maximum_Elements = Default_Maximum_Elements<T>::value>
-struct BTree {
+template <class T, size_t Maximum_Elements>
+struct Tree_Base {
     static_assert(Maximum_Elements >= 1, "0 elements doesn't allow insertion");
     using Node = Node<T, Maximum_Elements>;
     using Iterator = ds::btree::Iterator<T, Maximum_Elements>;
@@ -69,16 +87,47 @@ struct BTree {
 
     void drop(cz::Allocator allocator);
 
-    bool insert(cz::Allocator allocator, const T& element);
-
-    void remove(cz::Allocator allocator, Const_Iterator iterator);
-
     Iterator start();
     Iterator end();
     Const_Iterator start() const;
     Const_Iterator end() const;
 
+    void remove(cz::Allocator allocator, Const_Iterator iterator);
+
     Node* root;
+};
+
+template <class T, size_t Maximum_Elements = Default_Maximum_Elements<T>::value>
+struct Tree : Tree_Base<T, Maximum_Elements> {
+    bool insert(cz::Allocator allocator, const T& element);
+
+    Iterator find(const T& element) { return find_eq(element); }
+    Iterator find_eq(const T& element);
+    Iterator find_lt(const T& element);
+    Iterator find_gt(const T& element);
+    Iterator find_le(const T& element);
+    Iterator find_ge(const T& element);
+};
+
+template <class T, size_t Maximum_Elements = Default_Maximum_Elements<T>::value>
+struct Tree_Comparator : Tree_Base<T, Maximum_Elements> {
+    template <class Comparator>
+    bool insert(cz::Allocator allocator, const T& element, Comparator&& comparator);
+
+    template <class Comparator>
+    Iterator find(const T& element, Comparator&& comparator) {
+        return find_eq(element, comparator);
+    }
+    template <class Comparator>
+    Iterator find_eq(const T& element, Comparator&& comparator);
+    template <class Comparator>
+    Iterator find_lt(const T& element, Comparator&& comparator);
+    template <class Comparator>
+    Iterator find_gt(const T& element, Comparator&& comparator);
+    template <class Comparator>
+    Iterator find_le(const T& element, Comparator&& comparator);
+    template <class Comparator>
+    Iterator find_ge(const T& element, Comparator&& comparator);
 };
 
 }

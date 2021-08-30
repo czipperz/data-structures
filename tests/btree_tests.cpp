@@ -6,7 +6,7 @@ using namespace cz;
 using namespace ds::btree;
 
 TEST_CASE("BTree insert all in root") {
-    BTree<int, 4> btree = {};
+    Tree<int, 4> btree = {};
     CZ_DEFER(btree.drop(cz::heap_allocator()));
 
     btree.insert(cz::heap_allocator(), 10);
@@ -30,7 +30,7 @@ TEST_CASE("BTree insert all in root") {
 }
 
 TEST_CASE("BTree insert split root") {
-    BTree<int, 4> btree = {};
+    Tree<int, 4> btree = {};
     CZ_DEFER(btree.drop(cz::heap_allocator()));
 
     btree.insert(cz::heap_allocator(), 10);
@@ -64,7 +64,7 @@ TEST_CASE("BTree insert split root") {
 }
 
 TEST_CASE("BTree insert into children of root") {
-    BTree<int, 4> btree = {};
+    Tree<int, 4> btree = {};
     CZ_DEFER(btree.drop(cz::heap_allocator()));
 
     btree.insert(cz::heap_allocator(), 10);
@@ -108,7 +108,7 @@ TEST_CASE("BTree insert into children of root") {
 }
 
 TEST_CASE("BTree split children of root height=1") {
-    BTree<int, 4> btree = {};
+    Tree<int, 4> btree = {};
     CZ_DEFER(btree.drop(cz::heap_allocator()));
 
     btree.insert(cz::heap_allocator(), 10);
@@ -175,7 +175,7 @@ TEST_CASE("BTree split children of root height=1") {
 }
 
 TEST_CASE("BTree insert 100 elements") {
-    BTree<int, 4> btree = {};
+    Tree<int, 4> btree = {};
     CZ_DEFER(btree.drop(cz::heap_allocator()));
 
     for (int i = 0; i < 100; ++i) {
@@ -194,7 +194,7 @@ TEST_CASE("BTree insert 100 elements") {
 }
 
 TEST_CASE("BTree insert 100 elements reverse") {
-    BTree<int, 4> btree = {};
+    Tree<int, 4> btree = {};
     CZ_DEFER(btree.drop(cz::heap_allocator()));
 
     for (int i = 100; i-- > 0;) {
@@ -213,7 +213,7 @@ TEST_CASE("BTree insert 100 elements reverse") {
 }
 
 TEST_CASE("BTree insert 100 elements random") {
-    BTree<int, 4> btree = {};
+    Tree<int, 4> btree = {};
     CZ_DEFER(btree.drop(cz::heap_allocator()));
 
     {
@@ -238,4 +238,147 @@ TEST_CASE("BTree insert 100 elements random") {
         ++it;
     }
     REQUIRE(it == btree.end());
+}
+
+TEST_CASE("BTree find") {
+    Tree<int, 4> btree = {};
+    CZ_DEFER(btree.drop(cz::heap_allocator()));
+
+    btree.insert(cz::heap_allocator(), 1);
+    btree.insert(cz::heap_allocator(), 3);
+    btree.insert(cz::heap_allocator(), 5);
+    btree.insert(cz::heap_allocator(), 7);
+
+    Iterator<int, 4> it;
+
+    it = btree.find(0);
+    CHECK(it == btree.end());
+
+    it = btree.find(1);
+    REQUIRE(it != btree.end());
+    CHECK(*it == 1);
+
+    it = btree.find(2);
+    CHECK(it == btree.end());
+
+    it = btree.find(3);
+    REQUIRE(it != btree.end());
+    CHECK(*it == 3);
+
+    it = btree.find(4);
+    CHECK(it == btree.end());
+}
+
+TEST_CASE("BTree find_lt") {
+    Tree<int, 4> btree = {};
+    CZ_DEFER(btree.drop(cz::heap_allocator()));
+
+    btree.insert(cz::heap_allocator(), 1);
+    btree.insert(cz::heap_allocator(), 3);
+
+    Iterator<int, 4> it;
+
+    it = btree.find_lt(0);
+    CHECK(it == btree.end());
+
+    it = btree.find_lt(1);
+    CHECK(it == btree.end());
+
+    it = btree.find_lt(2);
+    REQUIRE(it != btree.end());
+    CHECK(*it == 1);
+
+    it = btree.find_lt(3);
+    REQUIRE(it != btree.end());
+    CHECK(*it == 1);
+
+    it = btree.find_lt(4);
+    REQUIRE(it != btree.end());
+    CHECK(*it == 3);
+}
+
+TEST_CASE("BTree find_gt") {
+    Tree<int, 4> btree = {};
+    CZ_DEFER(btree.drop(cz::heap_allocator()));
+
+    btree.insert(cz::heap_allocator(), 1);
+    btree.insert(cz::heap_allocator(), 3);
+
+    Iterator<int, 4> it;
+
+    it = btree.find_gt(0);
+    REQUIRE(it != btree.end());
+    CHECK(*it == 1);
+
+    it = btree.find_gt(1);
+    REQUIRE(it != btree.end());
+    CHECK(*it == 3);
+
+    it = btree.find_gt(2);
+    REQUIRE(it != btree.end());
+    CHECK(*it == 3);
+
+    it = btree.find_gt(3);
+    CHECK(it == btree.end());
+
+    it = btree.find_gt(4);
+    CHECK(it == btree.end());
+}
+
+TEST_CASE("BTree find_le") {
+    Tree<int, 4> btree = {};
+    CZ_DEFER(btree.drop(cz::heap_allocator()));
+
+    btree.insert(cz::heap_allocator(), 1);
+    btree.insert(cz::heap_allocator(), 3);
+
+    Iterator<int, 4> it;
+
+    it = btree.find_le(0);
+    CHECK(it == btree.end());
+
+    it = btree.find_le(1);
+    REQUIRE(it != btree.end());
+    CHECK(*it == 1);
+
+    it = btree.find_le(2);
+    REQUIRE(it != btree.end());
+    CHECK(*it == 1);
+
+    it = btree.find_le(3);
+    REQUIRE(it != btree.end());
+    CHECK(*it == 3);
+
+    it = btree.find_le(4);
+    REQUIRE(it != btree.end());
+    CHECK(*it == 3);
+}
+
+TEST_CASE("BTree find_ge") {
+    Tree<int, 4> btree = {};
+    CZ_DEFER(btree.drop(cz::heap_allocator()));
+
+    btree.insert(cz::heap_allocator(), 1);
+    btree.insert(cz::heap_allocator(), 3);
+
+    Iterator<int, 4> it;
+
+    it = btree.find_ge(0);
+    REQUIRE(it != btree.end());
+    CHECK(*it == 1);
+
+    it = btree.find_ge(1);
+    REQUIRE(it != btree.end());
+    CHECK(*it == 1);
+
+    it = btree.find_ge(2);
+    REQUIRE(it != btree.end());
+    CHECK(*it == 3);
+
+    it = btree.find_ge(3);
+    REQUIRE(it != btree.end());
+    CHECK(*it == 3);
+
+    it = btree.find_ge(4);
+    CHECK(it == btree.end());
 }

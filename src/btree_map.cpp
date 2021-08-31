@@ -22,53 +22,63 @@ Key_Comparator<Key> key_comparator(const Key& key) {
     return {&key};
 }
 
-template <class Key, class Value>
-Iterator<Pair<Key, Value> > Map<Key, Value>::find_eq(const Key& key) {
+template <class Key, class Value, size_t Maximum_Elements>
+Iterator<Pair<Key, Value>, Maximum_Elements> Map<Key, Value, Maximum_Elements>::find_eq(
+    const Key& key) {
     return tree.find_eq(key_comparator(key));
 }
 
-template <class Key, class Value>
-Iterator<Pair<Key, Value> > Map<Key, Value>::find_lt(const Key& key) {
+template <class Key, class Value, size_t Maximum_Elements>
+Iterator<Pair<Key, Value>, Maximum_Elements> Map<Key, Value, Maximum_Elements>::find_lt(
+    const Key& key) {
     return tree.find_lt(key_comparator(key));
 }
 
-template <class Key, class Value>
-Iterator<Pair<Key, Value> > Map<Key, Value>::find_gt(const Key& key) {
+template <class Key, class Value, size_t Maximum_Elements>
+Iterator<Pair<Key, Value>, Maximum_Elements> Map<Key, Value, Maximum_Elements>::find_gt(
+    const Key& key) {
     return tree.find_gt(key_comparator(key));
 }
 
-template <class Key, class Value>
-Iterator<Pair<Key, Value> > Map<Key, Value>::find_le(const Key& key) {
+template <class Key, class Value, size_t Maximum_Elements>
+Iterator<Pair<Key, Value>, Maximum_Elements> Map<Key, Value, Maximum_Elements>::find_le(
+    const Key& key) {
     return tree.find_le(key_comparator(key));
 }
 
-template <class Key, class Value>
-Iterator<Pair<Key, Value> > Map<Key, Value>::find_ge(const Key& key) {
+template <class Key, class Value, size_t Maximum_Elements>
+Iterator<Pair<Key, Value>, Maximum_Elements> Map<Key, Value, Maximum_Elements>::find_ge(
+    const Key& key) {
     return tree.find_ge(key_comparator(key));
 }
 
-template <class Key, class Value>
-Iterator<const Pair<Key, Value> > Map<Key, Value>::find_eq(const Key& key) const {
+template <class Key, class Value, size_t Maximum_Elements>
+Iterator<const Pair<Key, Value>, Maximum_Elements> Map<Key, Value, Maximum_Elements>::find_eq(
+    const Key& key) const {
     return tree.find_eq(key_comparator(key));
 }
 
-template <class Key, class Value>
-Iterator<const Pair<Key, Value> > Map<Key, Value>::find_lt(const Key& key) const {
+template <class Key, class Value, size_t Maximum_Elements>
+Iterator<const Pair<Key, Value>, Maximum_Elements> Map<Key, Value, Maximum_Elements>::find_lt(
+    const Key& key) const {
     return tree.find_lt(key_comparator(key));
 }
 
-template <class Key, class Value>
-Iterator<const Pair<Key, Value> > Map<Key, Value>::find_gt(const Key& key) const {
+template <class Key, class Value, size_t Maximum_Elements>
+Iterator<const Pair<Key, Value>, Maximum_Elements> Map<Key, Value, Maximum_Elements>::find_gt(
+    const Key& key) const {
     return tree.find_gt(key_comparator(key));
 }
 
-template <class Key, class Value>
-Iterator<const Pair<Key, Value> > Map<Key, Value>::find_le(const Key& key) const {
+template <class Key, class Value, size_t Maximum_Elements>
+Iterator<const Pair<Key, Value>, Maximum_Elements> Map<Key, Value, Maximum_Elements>::find_le(
+    const Key& key) const {
     return tree.find_le(key_comparator(key));
 }
 
-template <class Key, class Value>
-Iterator<const Pair<Key, Value> > Map<Key, Value>::find_ge(const Key& key) const {
+template <class Key, class Value, size_t Maximum_Elements>
+Iterator<const Pair<Key, Value>, Maximum_Elements> Map<Key, Value, Maximum_Elements>::find_ge(
+    const Key& key) const {
     return tree.find_ge(key_comparator(key));
 }
 

@@ -69,4 +69,4 @@ struct Map {
 }
 }
 
-#include "splay_map.tpp"
+#include "splay_map.cpp"

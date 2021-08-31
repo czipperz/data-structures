@@ -75,4 +75,4 @@ Iterator<T> find_greater_equal_comparator(Tree<T>* tree, Comparator&& comparator
 }
 }
 
-#include "splay_tree.tpp"
+#include "splay_tree.cpp"

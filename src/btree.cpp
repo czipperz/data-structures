@@ -348,7 +348,7 @@ Iterator<T, Maximum_Elements> find_lt(const Tree_Base<T, Maximum_Elements>* tree
     Iterator<T, Maximum_Elements> iterator = gen_find(tree, comparator, &last_comparison);
     if (last_comparison > 0) {
         return iterator;
-    } else if (iterator == tree->start()) {
+    } else if (iterator == detail::start(tree)) {
         return detail::end(tree);
     } else {
         --iterator;
@@ -362,7 +362,7 @@ Iterator<T, Maximum_Elements> find_gt(const Tree_Base<T, Maximum_Elements>* tree
     Iterator<T, Maximum_Elements> iterator = gen_find(tree, comparator, &last_comparison);
     if (last_comparison < 0) {
         return iterator;
-    } else if (iterator == tree->end()) {
+    } else if (iterator == detail::end(tree)) {
         return detail::end(tree);
     } else {
         ++iterator;
@@ -376,7 +376,7 @@ Iterator<T, Maximum_Elements> find_le(const Tree_Base<T, Maximum_Elements>* tree
     Iterator<T, Maximum_Elements> iterator = gen_find(tree, comparator, &last_comparison);
     if (last_comparison >= 0) {
         return iterator;
-    } else if (iterator == tree->start()) {
+    } else if (iterator == detail::start(tree)) {
         return detail::end(tree);
     } else {
         --iterator;
@@ -390,7 +390,7 @@ Iterator<T, Maximum_Elements> find_ge(const Tree_Base<T, Maximum_Elements>* tree
     Iterator<T, Maximum_Elements> iterator = gen_find(tree, comparator, &last_comparison);
     if (last_comparison <= 0) {
         return iterator;
-    } else if (iterator == tree->end()) {
+    } else if (iterator == detail::end(tree)) {
         return detail::end(tree);
     } else {
         ++iterator;

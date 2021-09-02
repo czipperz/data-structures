@@ -172,6 +172,7 @@ bool insert(Tree_Base<T, Maximum_Elements>* tree,
         node->children[1] = nullptr;
         node->elements[0] = element;
         tree->root = node;
+        ++tree->count;
         return true;
     }
 
@@ -199,6 +200,7 @@ bool insert(Tree_Base<T, Maximum_Elements>* tree,
         // Simply insert into this node.
         if (node->num_elements < Maximum_Elements) {
             detail::insert_inplace(node, *pelement, child, index);
+            ++tree->count;
             return true;
         }
 
@@ -229,6 +231,7 @@ bool insert(Tree_Base<T, Maximum_Elements>* tree,
             node->parent_index = 0;
             right->parent = new_root;
             right->parent_index = 1;
+            ++tree->count;
             return true;
         }
 

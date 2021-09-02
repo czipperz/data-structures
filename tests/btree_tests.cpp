@@ -181,6 +181,7 @@ TEST_CASE("BTree insert 100 elements") {
     for (int i = 0; i < 100; ++i) {
         INFO("i = " << i);
         btree.insert(cz::heap_allocator(), i);
+        CHECK(btree.count == i + 1);
 
         Iterator<int, 4> it = btree.start();
         for (int j = 0; j <= i; ++j) {
@@ -200,6 +201,7 @@ TEST_CASE("BTree insert 100 elements reverse") {
     for (int i = 100; i-- > 0;) {
         INFO("i = " << i);
         btree.insert(cz::heap_allocator(), i);
+        CHECK(btree.count == 100 - i);
 
         Iterator<int, 4> it = btree.start();
         for (int j = i; j < 100; ++j) {
@@ -226,8 +228,10 @@ TEST_CASE("BTree insert 100 elements random") {
         std::shuffle(nums, nums + 100, g);
 
         for (int i = 0; i < 100; ++i) {
+            CHECK(btree.count == i);
             btree.insert(cz::heap_allocator(), nums[i]);
         }
+        CHECK(btree.count == 100);
     }
 
     Iterator<int, 4> it = btree.start();

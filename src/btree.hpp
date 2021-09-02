@@ -97,6 +97,7 @@ struct Tree_Base {
     void remove(cz::Allocator allocator, Const_Iterator iterator);
 
     Node* root;
+    uint64_t count;
 };
 
 template <class T, size_t Maximum_Elements = Default_Maximum_Elements<T>::value>
